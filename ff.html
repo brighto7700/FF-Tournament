@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Fire Headshot Challenge Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .container-flex {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar styles for desktop */
+        .sidebar {
+            width: 250px;
+            background-color: #2d3748;
+            padding: 1.5rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(0); /* Always visible on desktop */
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 1005;
+        }
+
+        /* Main content for desktop */
+        .main-content {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        /* Common styles for nav items, buttons, inputs, tables */
+        .sidebar-nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            color: #cbd5e0;
+            font-weight: 600;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+        .sidebar-nav-item:hover {
+            background-color: #4a5568;
+            color: #e2e8f0;
+        }
+        .sidebar-nav-item.active {
+            background-color: #4299e1; /* Active blue */
+            color: white;
+        }
+        .btn-primary {
+            background-color: #4299e1;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #3182ce;
+        }
+        .input-field {
+            background-color: #4a5568;
+            border: 1px solid #6b7280;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            color: #e2e8f0;
+            width: 100%;
+        }
+        .card {
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .table-header {
+            background-color: #4a5568;
+            color: #cbd5e0;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #6b7280;
+        }
+        .table-row {
+            border-bottom: 1px solid #4a5568;
+        }
+        .table-cell {
+            padding: 0.75rem 1rem;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #2d3748;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 400px;
+            color: #e2e8f0;
+            text-align: center;
+        }
+        .modal-close-btn {
+            background-color: #e53e3e;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            cursor: pointer;
+        }
+
+        /* Sidebar Toggle Button (Mobile Only) */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            background-color: #4299e1;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            z-index: 1010; /* Above everything */
+            display: none; /* Hidden by default */
+            transition: left 0.3s ease-in-out;
+        }
+        /* No .sidebar-open class for this button, it just shows/hides */
+
+
+        /* Content Sections - crucial for single page display */
+        .content-section {
+            display: none; /* Hidden by default */
+        }
+        .content-section.active {
+            display: block; /* Show active section */
+        }
+
+
+        /* Mobile-Specific Styles (max-width: 768px) */
+        @media (max-width: 768px) {
+            .container-flex {
+                flex-direction: column; /* Stack for mobile */
+            }
+            .sidebar {
+                position: fixed; /* Overlay on mobile */
+                height: 100%;
+                width: 250px;
+                transform: translateX(-100%); /* Start hidden off-screen */
+                top: 0;
+                left: 0;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Stronger shadow for overlay */
+                z-index: 1010; /* Ensure it's above the overlay and main content */
+            }
+            .sidebar.collapsed {
+                transform: translateX(-100%); /* Ensure it's hidden */
+            }
+            .sidebar:not(.collapsed) {
+                transform: translateX(0); /* Slide in */
+            }
+            .sidebar-toggle-btn {
+                display: block; /* Show toggle button on mobile */
+            }
+            /* Hide the open button when sidebar is open */
+            .sidebar:not(.collapsed) ~ .sidebar-toggle-btn {
+                display: none;
+            }
+            .main-content {
+                width: 100%; /* Main content always full width on mobile */
+                padding-top: 4rem; /* Space for the fixed toggle button */
+            }
+            /* Overlay for click-outside-to-close */
+            #overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1008; /* Below sidebar, above main content */
+                display: none; /* Hidden by default */
+            }
+            #overlay.active {
+                display: block;
+            }
+            /* Close button inside sidebar for mobile */
+            .sidebar-close-btn {
+                display: block; /* Show on mobile */
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                cursor: pointer;
+                z-index: 1011;
+            }
+        }
+        /* Hide close button on desktop */
+        @media (min-width: 769px) {
+            .sidebar-close-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+    <!-- Sidebar Toggle Button for Mobile (Open) -->
+    <button id="sidebarToggle" class="sidebar-toggle-btn">☰ Menu</button>
+
+    <!-- Overlay for click-outside-to-close -->
+    <div id="overlay" class=""></div>
+
+    <div class="container-flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <button id="sidebarCloseBtn" class="sidebar-close-btn">X</button> <!-- Close button inside sidebar -->
+            <h1 class="text-2xl font-bold text-blue-400 mb-6 text-center">Headshot Challenge</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="sidebar-nav-item active" data-section="overview">Tournament Overview</a></li>
+                    <li><a href="#" class="sidebar-nav-item" data-section="record-results">Record Match Results</a></li>
+                    <li><a href="#" class="sidebar-nav-item" data-section="player-rankings">Player Rankings</a></li>
+                    <li><a href="#" class="sidebar-nav-item" data-section="knockout-phases">Knockout Phases</a></li>
+                    <li><a href="#" class="sidebar-nav-item" data-section="manage-players">Manage Players</a></li>
+                </ul>
+            </nav>
+            <button id="resetAllData" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-md w-full mt-8">Reset All Data</button>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="mainContent" class="main-content">
+            <!-- Tournament Overview Section -->
+            <section id="overview" class="content-section active card">
+                <h2 class="text-2xl font-semibold mb-4">Tournament Overview</h2>
+                <p class="mb-2">**Players:** 7-9 Participants</p>
+                <p class="mb-4">**Goal:** Crown the ultimate "Headshot King/Queen" and the top "Headshot Team"!</p>
+
+                <h3 class="text-xl font-semibold mb-2">Phases:</h3>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>**Phase 1:** Team & Individual Skill Assessment (Points Accumulation)</li>
+                    <li>**Phase 2:** Individual Headshot Knockout (1v1 Showdown)</li>
+                    <li>**Phase 3:** The Grand Finals (Bronze Match & Team Championship)</li>
+                </ul>
+                <p class="mt-4 text-sm text-gray-400">
+                    **Note on Scoring:** For every squad match played, all players in the winning team get +4 points. Each individual kill adds +1 point to their total.
+                </p>
+            </section>
+
+            <!-- Record Match Results Section -->
+            <section id="record-results" class="content-section card">
+                <h2 class="text-2xl font-semibold mb-4">Record Match Results (Phase 1)</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="matchType" class="block text-sm font-medium mb-1">Match Type:</label>
+                        <select id="matchType" class="input-field">
+                            <option value="CS_Standard">4v4 Clash Squad (Standard)</option>
+                            <option value="YouTube_Headshot">4v4 YouTube Headshot (Craftland)</option>
+                            <option value="CustomCS_Headshot">4v4 Custom CS Headshot</option>
+                            <option value="LoneWolf_2v2">2v2 Lone Wolf Headshot (Individual)</option>
+                        </select>
+                    </div>
+
+                    <div id="teamWinSection">
+                        <label for="winningTeam" class="block text-sm font-medium mb-1">Winning Team:</label>
+                        <select id="winningTeam" class="input-field">
+                            <option value="">Select if Team Match</option>
+                            <option value="Team Alpha">Team Alpha</option>
+                            <option value="Team Bravo">Team Bravo</option>
+                        </select>
+                    </div>
+
+                    <div id="playerScoresInput" class="space-y-3">
+                        <!-- Player score inputs will be dynamically added here -->
+                    </div>
+
+                    <button id="submitMatchResults" class="btn-primary w-full">Submit Match Results</button>
+                </div>
+            </section>
+
+            <!-- Player Rankings Section -->
+            <section id="player-rankings" class="content-section card">
+                <h2 class="text-2xl font-semibold mb-4">Current Player Rankings (Phase 1 Scores)</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+                        <thead>
+                            <tr class="table-header">
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm rounded-tl-lg">Rank</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Player Name</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Team</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Kills</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm rounded-tr-lg">Total Points</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playerRankingTable">
+                            <!-- Player rows will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Knockout Phases Section -->
+            <section id="knockout-phases" class="content-section card">
+                <h2 class="text-2xl font-semibold mb-4">Knockout Phases (Phase 2 & 3)</h2>
+
+                <h3 class="text-xl font-semibold mb-2">Phase 2: Individual Headshot Knockout</h3>
+                <p class="mb-2">This phase is for the **top 4 players** from the ranking (see Player Rankings section).</p>
+                <p class="mb-2">**Mode:** Lone Wolf (1v1) - HEADSHOT ONLY! (Custom Room setting enabled).</p>
+                <p class="mb-4">**Matches:**</p>
+                <ul class="list-disc list-inside space-y-1" id="phase2Matches">
+                    <li>**Semi-Final 1:** Player #1 vs. Player #4</li>
+                    <li>**Semi-Final 2:** Player #2 vs. Player #3</li>
+                    <li>Each match is Best of 3 rounds.</li>
+                </ul>
+                <p class="text-lg font-bold mt-4">**Outcome:** Winners advance to Grand Final. Losers play for 3rd place.</p>
+
+                <h3 class="text-xl font-semibold mb-2 mt-6">Phase 3: The Grand Finals</h3>
+
+                <h4 class="text-lg font-semibold mb-2">Phase 3a: Bronze Match (Individual 3rd Place)</h4>
+                <ul class="list-disc list-inside space-y-1 mb-4">
+                    <li>**Mode:** Lone Wolf (1v1) - HEADSHOT ONLY!</li>
+                    <li>**Players:** The two players who lost their Semi-Final matches in Phase 2.</li>
+                    <li>**Format:** Best of 3 rounds.</li>
+                    <li>**Winner:** Secures **3rd Place (Individual)**.</li>
+                </ul>
+
+                <h4 class="text-lg font-semibold mb-2 mt-4">Phase 3b: Championship Match (Team Grand Final)</h4>
+                <ul class="list-disc list-inside space-y-1 mb-4">
+                    <li>**Mode:** "YouTube Headshot" (Craftland Map) - 4v4, Open Map, Infinite Gloo, HEADSHOT ONLY!</li>
+                    <li>*(Backup: Custom CS Headshot - 4v4, Headshot Only).*</li>
+                    <li>**Players:** The two fixed teams from Phase 1.</li>
+                    <li>**Format:** Best of 5 rounds.</li>
+                    <li>**Winner:** Crowned **"Headshot Challenge" Team Champions!**</li>
+                </ul>
+
+                <div class="mt-8 p-4 border border-gray-600 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-3">Record Final Match Results</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="semiFinal1Winner" class="block text-sm font-medium mb-1">Semi-Final 1 Winner:</label>
+                            <select id="semiFinal1Winner" class="input-field">
+                                <option value="">Select Winner</option>
+                                <!-- Options populated dynamically by JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="semiFinal2Winner" class="block text-sm font-medium mb-1">Semi-Final 2 Winner:</label>
+                            <select id="semiFinal2Winner" class="input-field">
+                                <option value="">Select Winner</option>
+                                <!-- Options populated dynamically by JS -->
+                            </select>
+                        </div>
+                        <div class="pt-4 border-t border-gray-700">
+                            <label for="bronzeMatchWinner" class="block text-sm font-medium mb-1">Bronze Match Winner (3rd Place):</label>
+                            <select id="bronzeMatchWinner" class="input-field">
+                                <option value="">Select Winner</option>
+                                <!-- Options populated dynamically by JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="championshipMatchWinnerTeam" class="block text-sm font-medium mb-1">Championship Match Winner (Team):</label>
+                            <select id="championshipMatchWinnerTeam" class="input-field">
+                                <option value="">Select Winning Team</option>
+                                <option value="Team Alpha">Team Alpha</option>
+                                <option value="Team Bravo">Team Bravo</option>
+                            </select>
+                        </div>
+                        <button id="submitFinalResults" class="btn-primary w-full mt-4">Submit Final Results</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manage Players Section -->
+            <section id="manage-players" class="content-section card">
+                <h2 class="text-2xl font-semibold mb-4">Manage Players</h2>
+
+                <!-- Add New Player Form -->
+                <div class="mb-6 p-4 border border-gray-600 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-3">Add New Player</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="newPlayerName" class="block text-sm font-medium mb-1">Player Name:</label>
+                            <input type="text" id="newPlayerName" class="input-field" placeholder="Enter player name">
+                        </div>
+                        <div>
+                            <label for="newPlayerTeam" class="block text-sm font-medium mb-1">Assign Team:</label>
+                            <select id="newPlayerTeam" class="input-field">
+                                <option value="Team Alpha">Team Alpha</option>
+                                <option value="Team Bravo">Team Bravo</option>
+                            </select>
+                        </div>
+                        <button id="addPlayerBtn" class="btn-primary w-full">Add Player</button>
+                    </div>
+                </div>
+
+                <!-- Existing Players List -->
+                <h3 class="text-xl font-semibold mb-3">Existing Players</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-gray-700 rounded-lg overflow-hidden">
+                        <thead>
+                            <tr class="table-header">
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Name</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Team</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Kills</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Total Points</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="existingPlayersTable">
+                            <!-- Existing players will be listed here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal for Alerts/Confirmations -->
+        <div id="alertModal" class="modal hidden">
+            <div class="modal-content">
+                <p id="alertMessage" class="text-lg font-semibold"></p>
+                <button id="alertCloseBtn" class="modal-close-btn">Okay</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Global Data Structures ---
+        let players = JSON.parse(localStorage.getItem('ffTournamentPlayers')) || [];
+        let teams = JSON.parse(localStorage.getItem('ffTournamentTeams')) || [];
+
+        // --- Initial Setup / Data Reset ---
+        function initializeData() {
+            if (localStorage.getItem('ffTournamentPlayers') === null || JSON.parse(localStorage.getItem('ffTournamentPlayers')).length === 0) {
+                players = []; // Start with an empty array of players
+                teams = [
+                    { id: 't1', name: 'Team Alpha', members: [], totalPoints: 0 },
+                    { id: 't2', name: 'Team Bravo', members: [], totalPoints: 0 },
+                ];
+                saveData();
+            } else {
+                players = JSON.parse(localStorage.getItem('ffTournamentPlayers'));
+                teams = JSON.parse(localStorage.getItem('ffTournamentTeams'));
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('ffTournamentPlayers', JSON.stringify(players));
+            localStorage.setItem('ffTournamentTeams', JSON.stringify(teams));
+        }
+
+        function loadData() {
+            initializeData();
+            renderPlayerInputs();
+            renderRankingTable();
+            updatePhase2Knockout();
+            renderExistingPlayersTable();
+            populateFinalMatchSelectors(); // Populate selectors for final matches
+            const activeSectionId = document.querySelector('.sidebar-nav-item.active')?.dataset.section || 'overview';
+            showSection(activeSectionId);
+        }
+
+        // --- UI Elements ---
+        const playerScoresInputDiv = document.getElementById('playerScoresInput');
+        const matchTypeSelect = document.getElementById('matchType');
+        const winningTeamSelect = document.getElementById('winningTeam');
+        const playerRankingTableBody = document.getElementById('playerRankingTable');
+        const phase2MatchesList = document.getElementById('phase2Matches');
+        const alertModal = document.getElementById('alertModal');
+        const alertMessage = document.getElementById('alertMessage');
+        const alertCloseBtn = document.getElementById('alertCloseBtn');
+        const sidebarNavItems = document.querySelectorAll('.sidebar-nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggle');
+        const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+        const overlay = document.getElementById('overlay');
+
+        // Player Management Elements
+        const newPlayerNameInput = document.getElementById('newPlayerName');
+        const newPlayerTeamSelect = document.getElementById('newPlayerTeam');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        const existingPlayersTableBody = document.getElementById('existingPlayersTable');
+
+        // Final Match Elements
+        const semiFinal1WinnerSelect = document.getElementById('semiFinal1Winner');
+        const semiFinal2WinnerSelect = document.getElementById('semiFinal2Winner');
+        const bronzeMatchWinnerSelect = document.getElementById('bronzeMatchWinner');
+        const championshipMatchWinnerTeamSelect = document.getElementById('championshipMatchWinnerTeam');
+        const submitFinalResultsBtn = document.getElementById('submitFinalResults');
+
+
+        // --- UI Rendering Functions ---
+
+        // Render input fields for players based on current player list
+        function renderPlayerInputs() {
+            playerScoresInputDiv.innerHTML = '';
+            if (players.length === 0) {
+                playerScoresInputDiv.innerHTML = '<p class="text-gray-400">No players added yet. Go to "Manage Players" to add some!</p>';
+                return;
+            }
+            players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4';
+                div.innerHTML = `
+                    <span class="w-full sm:w-1/3 font-medium">${player.name} (${player.team})</span>
+                    <input type="number" placeholder="Kills" data-player-id="${player.id}" data-type="kills" class="input-field w-full sm:w-2/3" value="0" min="0">
+                `;
+                playerScoresInputDiv.appendChild(div);
+            });
+        }
+
+        // Render the player ranking table
+        function renderRankingTable() {
+            playerRankingTableBody.innerHTML = '';
+            if (players.length === 0) {
+                playerRankingTableBody.innerHTML = '<tr><td colspan="5" class="table-cell text-center text-gray-400">No players to rank yet.</td></tr>';
+                return;
+            }
+            const sortedPlayers = [...players].sort((a, b) => b.totalPoints - a.totalPoints);
+
+            sortedPlayers.forEach((player, index) => {
+                const tr = document.createElement('tr');
+                tr.className = `table-row ${index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}`;
+                tr.innerHTML = `
+                    <td class="table-cell font-bold">${index + 1}</td>
+                    <td class="table-cell">${player.name}</td>
+                    <td class="table-cell">${player.team}</td>
+                    <td class="table-cell">${player.kills}</td>
+                    <td class="table-cell font-bold text-blue-300">${player.totalPoints}</td>
+                `;
+                playerRankingTableBody.appendChild(tr);
+            });
+        }
+
+        // Update Phase 2 Knockout display based on current rankings
+        function updatePhase2Knockout() {
+            const sortedPlayers = [...players].sort((a, b) => b.totalPoints - a.totalPoints);
+            const top4 = sortedPlayers.slice(0, 4);
+
+            const p1 = top4[0] ? top4[0].name : 'Player #1';
+            const p2 = top4[1] ? top4[1].name : 'Player #2';
+            const p3 = top4[2] ? top4[2].name : 'Player #3';
+            const p4 = top4[3] ? top4[3].name : 'Player #4';
+
+
+            phase2MatchesList.innerHTML = `
+                <li>**Semi-Final 1:** ${p1} vs. ${p4}</li>
+                <li>**Semi-Final 2:** ${p2} vs. ${p3}</li>
+                <li>Each match is Best of 3 rounds.</li>
+            `;
+        }
+
+        // Render the table for managing players (add/edit/delete)
+        function renderExistingPlayersTable() {
+            existingPlayersTableBody.innerHTML = '';
+            if (players.length === 0) {
+                existingPlayersTableBody.innerHTML = '<tr><td colspan="5" class="table-cell text-center text-gray-400">No players added yet. Use the form above to add one!</td></tr>';
+                return;
+            }
+            players.forEach(player => {
+                const tr = document.createElement('tr');
+                tr.className = `table-row ${player.id % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}`;
+                tr.innerHTML = `
+                    <td class="table-cell">${player.name}</td>
+                    <td class="table-cell">${player.team}</td>
+                    <td class="table-cell">${player.kills}</td>
+                    <td class="table-cell">${player.totalPoints}</td>
+                    <td class="table-cell space-x-2">
+                        <!-- Edit Player Button is intentionally removed as per user request -->
+                        <button data-player-id="${player.id}" class="delete-player-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm">Delete</button>
+                    </td>
+                `;
+                existingPlayersTableBody.appendChild(tr);
+            });
+
+            document.querySelectorAll('.delete-player-btn').forEach(button => {
+                button.addEventListener('click', deletePlayer);
+            });
+        }
+
+        // Populate player selectors for final matches
+        function populateFinalMatchSelectors() {
+            const sortedPlayers = [...players].sort((a, b) => b.totalPoints - a.totalPoints);
+            const top4 = sortedPlayers.slice(0, 4); // Get top 4 for semi-finals
+
+            // Clear previous options
+            semiFinal1WinnerSelect.innerHTML = '<option value="">Select Winner</option>';
+            semiFinal2WinnerSelect.innerHTML = '<option value="">Select Winner</option>';
+            bronzeMatchWinnerSelect.innerHTML = '<option value="">Select Winner</option>';
+
+            // Populate semi-final selectors with top 4 players
+            top4.forEach(player => {
+                const option1 = document.createElement('option');
+                option1.value = player.name;
+                option1.textContent = player.name;
+                semiFinal1WinnerSelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = player.name;
+                option2.textContent = player.name;
+                semiFinal2WinnerSelect.appendChild(option2);
+            });
+
+            // Populate bronze match selector with all players (or specific losers if we track them)
+            // For simplicity, let's populate with all players for now, user can pick.
+            players.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player.name;
+                option.textContent = player.name;
+                bronzeMatchWinnerSelect.appendChild(option);
+            });
+        }
+
+
+        // --- Player Management Logic ---
+
+        function generatePlayerId() {
+            return 'p' + (players.length > 0 ? Math.max(...players.map(p => parseInt(p.id.substring(1)))) + 1 : 1);
+        }
+
+        addPlayerBtn.addEventListener('click', () => {
+            const name = newPlayerNameInput.value.trim();
+            const team = newPlayerTeamSelect.value;
+
+            if (!name) {
+                showAlert('Player name cannot be empty!');
+                return;
+            }
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                showAlert('Player with this name already exists!');
+                return;
+            }
+
+            const newPlayer = {
+                id: generatePlayerId(),
+                name: name,
+                team: team,
+                kills: 0,
+                totalPoints: 0
+            };
+            players.push(newPlayer);
+
+            const targetTeam = teams.find(t => t.name === team);
+            if (targetTeam) {
+                targetTeam.members.push(name);
+            }
+
+            saveData();
+            loadData();
+            newPlayerNameInput.value = '';
+            showAlert(`${name} added successfully!`);
+        });
+
+        // editPlayer function is intentionally removed as per user request to "leave it be"
+
+        function deletePlayer(event) {
+            const playerIdToDelete = event.target.dataset.playerId;
+            const playerToDelete = players.find(p => p.id === playerIdToDelete);
+
+            showAlert(`Are you sure you want to delete ${playerToDelete.name}? This will clear their scores.`, true);
+            alertCloseBtn.onclick = () => {
+                alertModal.classList.add('hidden');
+                if (playerToDelete) {
+                    players = players.filter(p => p.id !== playerIdToDelete);
+
+                    const teamOfDeletedPlayer = teams.find(t => t.name === playerToDelete.team);
+                    if (teamOfDeletedPlayer) {
+                        teamOfDeletedPlayer.members = teamOfDeletedPlayer.members.filter(member => member !== playerToDelete.name);
+                    }
+
+                    saveData();
+                    loadData();
+                    showAlert(`${playerToDelete.name} deleted successfully!`);
+                }
+            };
+        }
+
+
+        // --- Scoring Logic (Phase 1) ---
+
+        function calculateAndApplyPoints() {
+            const matchType = matchTypeSelect.value;
+            const winningTeamName = winningTeamSelect.value;
+
+            const playerInputs = playerScoresInputDiv.querySelectorAll('input[data-type="kills"]');
+            const matchPlayerStats = {};
+
+            playerInputs.forEach(input => {
+                const playerId = input.dataset.playerId;
+                const value = parseInt(input.value) || 0;
+                matchPlayerStats[playerId] = { kills: value };
+            });
+
+            players.forEach(player => {
+                const stats = matchPlayerStats[player.id];
+                if (!stats) return;
+
+                let playerPointsFromMatch = 0;
+
+                // Individual Kills points (+1 for every kill)
+                playerPointsFromMatch += stats.kills * 1;
+
+                // Team Win Points (only for squad matches)
+                if (winningTeamName && player.team === winningTeamName) {
+                    if (matchType === 'CS_Standard' || matchType === 'YouTube_Headshot' || matchType === 'CustomCS_Headshot') {
+                        playerPointsFromMatch += 4; // +4 points for winning squad match
+                    }
+                }
+
+                player.totalPoints += playerPointsFromMatch;
+                player.kills += stats.kills;
+            });
+
+            saveData();
+            loadData();
+            showAlert('Match results submitted successfully!');
+            resetInputFields();
+        }
+
+        function resetInputFields() {
+            playerScoresInputDiv.querySelectorAll('input').forEach(input => {
+                input.value = '0';
+            });
+            winningTeamSelect.value = '';
+            matchTypeSelect.value = 'CS_Standard';
+        }
+
+        // --- Final Match Results Logic (Phase 2 & 3) ---
+        submitFinalResultsBtn.addEventListener('click', () => {
+            const sf1Winner = semiFinal1WinnerSelect.value;
+            const sf2Winner = semiFinal2WinnerSelect.value;
+            const bronzeWinner = bronzeMatchWinnerSelect.value;
+            const championshipTeamWinner = championshipMatchWinnerTeamSelect.value;
+
+            if (!sf1Winner || !sf2Winner || !bronzeWinner || !championshipTeamWinner) {
+                showAlert('Please select winners for all final matches!');
+                return;
+            }
+
+            // Here you would implement logic to update player/team statuses (e.g., "Champion", "3rd Place")
+            // For now, let's just show an alert. You can expand this logic later.
+
+            showAlert(`Final Results Submitted:
+            Semi-Final 1 Winner: ${sf1Winner}
+            Semi-Final 2 Winner: ${sf2Winner}
+            Bronze Match Winner: ${bronzeWinner} (3rd Place)
+            Championship Team: ${championshipTeamWinner} (Champions!)
+            `);
+
+            // Optionally, you could reset these selectors after submission
+            semiFinal1WinnerSelect.value = '';
+            semiFinal2WinnerSelect.value = '';
+            bronzeMatchWinnerSelect.value = '';
+            championshipMatchWinnerTeamSelect.value = '';
+
+            // You might want to add logic here to mark players as champions/3rd place etc.
+            // Example:
+            const championshipTeam = teams.find(t => t.name === championshipTeamWinner);
+            if (championshipTeam) {
+                championshipTeam.members.forEach(memberName => {
+                    const player = players.find(p => p.name === memberName);
+                    if (player) {
+                        // You could add a 'status' property to players, e.g., player.status = 'Champion';
+                        // For now, let's just acknowledge.
+                    }
+                });
+            }
+            const bronzePlayer = players.find(p => p.name === bronzeWinner);
+            if (bronzePlayer) {
+                // bronzePlayer.status = '3rd Place';
+            }
+
+            saveData(); // Save any potential status updates
+            loadData(); // Re-render to reflect any changes
+        });
+
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', loadData);
+        document.getElementById('submitMatchResults').addEventListener('click', calculateAndApplyPoints);
+        document.getElementById('resetAllData').addEventListener('click', () => {
+            showAlert('Are you sure you want to reset ALL tournament data? This cannot be undone.', true);
+            alertCloseBtn.onclick = () => {
+                alertModal.classList.add('hidden');
+                localStorage.clear();
+                initializeData();
+                loadData();
+                showAlert('All data has been reset!');
+            };
+        });
+
+        // --- Alert Modal Functions ---
+        function showAlert(message, isConfirmation = false) {
+            alertMessage.textContent = message;
+            alertModal.classList.remove('hidden');
+            if (!isConfirmation) {
+                alertCloseBtn.textContent = 'Okay';
+                alertCloseBtn.onclick = () => alertModal.classList.add('hidden');
+            } else {
+                alertCloseBtn.textContent = 'Confirm Reset';
+            }
+        }
+
+        // --- Sidebar & Content Display Logic ---
+
+        function showSection(sectionId) {
+            contentSections.forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            sidebarNavItems.forEach(nav => nav.classList.remove('active'));
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+        }
+
+        // Sidebar Navigation Item Clicks
+        sidebarNavItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetSectionId = this.dataset.section;
+                showSection(targetSectionId);
+
+                if (window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                    sidebarToggleBtn.style.display = 'block';
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Sidebar Toggle Button Logic (Open Sidebar)
+        sidebarToggleBtn.addEventListener('click', () => {
+            sidebar.classList.remove('collapsed');
+            sidebarToggleBtn.style.display = 'none';
+            if (window.innerWidth <= 768) {
+                overlay.classList.add('active');
+            }
+        });
+
+        // Sidebar Close Button Logic (Inside Sidebar)
+        sidebarCloseBtn.addEventListener('click', () => {
+            sidebar.classList.add('collapsed');
+            sidebarToggleBtn.style.display = 'block';
+            overlay.classList.remove('active');
+        });
+
+        // Click Outside to Close Logic (Overlay)
+        overlay.addEventListener('click', () => {
+            if (!sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+                sidebarToggleBtn.style.display = 'block';
+                overlay.classList.remove('active');
+            }
+        });
+
+        // Initial check for sidebar state on load and resize
+        function checkSidebarState() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                sidebarToggleBtn.style.display = 'block';
+                overlay.classList.remove('active');
+            } else {
+                sidebar.classList.remove('collapsed');
+                sidebarToggleBtn.style.display = 'none';
+                overlay.classList.remove('active');
+            }
+        }
+
+        // Run on load and resize
+        window.addEventListener('resize', checkSidebarState);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            checkSidebarState();
+        });
+
+    </script>
+</body>
+</html>
